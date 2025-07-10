@@ -216,4 +216,8 @@ final class JavaPropertyElement extends AbstractJavaElement implements PropertyE
         return owningElement;
     }
 
+    @Override
+    public Optional<String> getDocumentation() {
+        return PropertyElement.super.getDocumentation();
+    }
 }
