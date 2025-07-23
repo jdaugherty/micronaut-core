@@ -51,6 +51,8 @@ final class JavaPropertyElement extends AbstractJavaElement implements PropertyE
     private final FieldElement field;
     private final boolean excluded;
     private final PropertyElementAnnotationMetadata annotationMetadata;
+    @Nullable
+    private final String doc;
 
     JavaPropertyElement(ClassElement owningElement,
                         ClassElement type,
@@ -62,7 +64,8 @@ final class JavaPropertyElement extends AbstractJavaElement implements PropertyE
                         AccessKind readAccessKind,
                         AccessKind writeAccessKind,
                         boolean excluded,
-                        JavaVisitorContext visitorContext) {
+                        JavaVisitorContext visitorContext,
+                        @Nullable String doc) {
         super(selectNativeType(getter, setter, field), annotationMetadataFactory, visitorContext);
         this.type = type;
         this.getter = getter;
@@ -74,6 +77,7 @@ final class JavaPropertyElement extends AbstractJavaElement implements PropertyE
         this.owningElement = owningElement;
         this.excluded = excluded;
         this.annotationMetadata = new PropertyElementAnnotationMetadata(this, getter, setter, field, null, false);
+        this.doc = doc;
     }
 
     @Override
@@ -88,7 +92,7 @@ final class JavaPropertyElement extends AbstractJavaElement implements PropertyE
 
     @Override
     protected AbstractJavaElement copyThis() {
-        return new JavaPropertyElement(owningElement, type, getter, setter, field, elementAnnotationMetadataFactory, name, readAccessKind, writeAccessKind, excluded, visitorContext);
+        return new JavaPropertyElement(owningElement, type, getter, setter, field, elementAnnotationMetadataFactory, name, readAccessKind, writeAccessKind, excluded, visitorContext, doc);
     }
 
     @Override
@@ -218,6 +222,6 @@ final class JavaPropertyElement extends AbstractJavaElement implements PropertyE
 
     @Override
     public Optional<String> getDocumentation() {
-        return PropertyElement.super.getDocumentation();
+        return doc == null ? PropertyElement.super.getDocumentation() : Optional.of(doc);
     }
 }

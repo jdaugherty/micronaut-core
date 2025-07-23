@@ -15,9 +15,13 @@
  */
 package io.micronaut.annotation.processing.visitor;
 
+import com.github.javaparser.StaticJavaParser;
+import com.github.javaparser.javadoc.Javadoc;
+import com.github.javaparser.javadoc.JavadocBlockTag;
 import io.micronaut.core.annotation.AnnotationMetadata;
 import io.micronaut.core.annotation.Internal;
 import io.micronaut.core.annotation.NonNull;
+import io.micronaut.core.annotation.Nullable;
 import io.micronaut.core.util.ArrayUtils;
 import io.micronaut.core.util.CollectionUtils;
 import io.micronaut.inject.ast.ClassElement;
@@ -298,7 +302,7 @@ public class JavaMethodElement extends AbstractJavaElement implements MethodElem
      * @return The parameter element
      */
     @NonNull
-    protected JavaParameterElement newParameterElement(@NonNull MethodElement methodElement, @NonNull VariableElement variableElement) {
+    JavaParameterElement newParameterElement(@NonNull JavaMethodElement methodElement, @NonNull VariableElement variableElement) {
         return new JavaParameterElement(owningType, methodElement, new JavaNativeElement.Variable(variableElement), elementAnnotationMetadataFactory, visitorContext);
     }
 
@@ -342,7 +346,26 @@ public class JavaMethodElement extends AbstractJavaElement implements MethodElem
             }
         }
         final TypeMirror returnType = executableElement.getReturnType();
-        return newClassElement(getNativeType(), returnType, genericInfo);
+        String docComment = visitorContext.getElements().getDocComment(executableElement);
+        return newClassElement(getNativeType(), returnType, genericInfo, findReturnDoc(docComment));
+    }
+
+    @Nullable
+    private static String findReturnDoc(String javadocString) {
+        try {
+            Javadoc javadoc = StaticJavaParser.parseJavadoc(javadocString);
+            if (javadoc == null) {
+                return null;
+            }
+            for (JavadocBlockTag t : javadoc.getBlockTags()) {
+                if (t.getType() == JavadocBlockTag.Type.RETURN) {
+                    return t.getContent().toText();
+                }
+            }
+            return null;
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     private static boolean sameType(String type, DeclaredType dt) {
