@@ -21,6 +21,7 @@ import io.micronaut.core.annotation.NonNull;
 import io.micronaut.core.annotation.ReflectiveAccess;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -122,15 +123,15 @@ public interface MemberElement extends Element {
             // case if the super class is in a different package then
             // the method or field is not visible and hence reflection is required
             final ClassElement declaringType = getDeclaringType();
-            String packageName = declaringType.getPackageName();
-            if (!packageName.equals(callingType.getPackageName())) {
+            String packageName = Objects.toString(declaringType.getPackageName(), "");
+            if (!packageName.equals(Objects.toString(callingType.getPackageName(), ""))) {
                 return allowReflection && hasAnnotation(ReflectiveAccess.class);
             }
             if (packagePrivate) {
                 // Check if there is a subtype that breaks the package friendship
                 ClassElement superClass = getOwningType();
                 while (superClass != null && !superClass.equals(declaringType)) {
-                    if (!packageName.equals(superClass.getPackageName())) {
+                    if (!packageName.equals(Objects.toString(superClass.getPackageName(),""))) {
                         return allowReflection && hasAnnotation(ReflectiveAccess.class);
                     }
                     superClass = superClass.getSuperType().orElse(null);
